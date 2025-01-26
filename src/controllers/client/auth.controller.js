@@ -41,7 +41,7 @@ const loginUser = async (req, res) => {
 
 const userRegistration = async(req,res)=>{
     const { name, email, password, phone } = req.body;
-    if (!name || !email || !password ) {
+    if (!name || !email || !password || !phone) {
         return res.status(400).json({message:"Please fillup all the required fields"})
       }
       if (password.length < 6) {

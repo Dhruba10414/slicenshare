@@ -1,0 +1,49 @@
+name: CI/CD Pipeline for Node.js Deployment
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Adjust based on your Node.js version
+
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Run Tests (Optional)
+      - name: Run Tests
+        run: npm test
+
+      # Step 5: Deploy to AWS EC2
+      - name: Deploy to AWS EC2
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > ec2_key.pem
+          chmod 600 ec2_key.pem
+          scp -i ec2_key.pem -r * $USER@$HOST:/home/$USER/project
+          ssh -i ec2_key.pem $USER@$HOST << EOF
+            cd /home/$USER/project
+            npm install --production
+            pm2 stop all || true
+            pm2 start server.js --name "node-app"
+          EOF
+          rm -f ec2_key.pem
