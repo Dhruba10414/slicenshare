@@ -17,7 +17,7 @@ app.use(helmet());
 const connectDB = require('./config/database');
 connectDB();
 
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 //swagger
@@ -29,12 +29,20 @@ app.use(errorHandler);
 
 //admin routes
 app.use("/api/products", productRoute)
-app.use("/api/admin/auth",adminAuthRoute)
+app.use("/api/admin/auth", adminAuthRoute)
 
 
 //user routes 
 app.use("/api/users", userRoute);
 app.use("/api/users", userProductRoute);
 
+app.get('/status', (req, res) => {
+    const status = {
+        status: "OK",
+        uptime: process.uptime(),
+        timestamp: new Date(),
+    };
+    res.status(200).json(status);
+});
 
 module.exports = app;
